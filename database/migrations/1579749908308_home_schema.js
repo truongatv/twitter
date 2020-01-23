@@ -3,13 +3,13 @@
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use('Schema')
 
-class HomesSchema extends Schema {
+class HomeSchema extends Schema {
   up () {
     this.create('homes', (table) => {
       table.increments()
       table.string('name').notNullable()
+      table.string('address')
       table.integer('admin_id').notNullable().unique()
-      table.integer('living_cost_id').notNullable().unique()
       table.timestamps()
     })
   }
@@ -19,4 +19,4 @@ class HomesSchema extends Schema {
   }
 }
 
-module.exports = HomesSchema
+module.exports = HomeSchema

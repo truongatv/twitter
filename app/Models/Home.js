@@ -4,15 +4,8 @@
 const Model = use('Model')
 
 class Home extends Model {
-    /**
- * A relationship on home to user
- *
- * @method tokens
- *
- * @return {Object}
- */
-    users() {
-        return this.hasMany('App/Models/User')
+    living_costs() {
+        return this.manyThrough('App/Models/User', 'living_costs')
     }
 }
 

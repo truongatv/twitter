@@ -89,6 +89,10 @@ module.exports = {
     model: 'App/Models/User',
     scheme: 'api',
     uid: 'email',
-    password: 'password'
+    password: 'password',
+    options   : {
+      secret   : Env.get('APP_KEY'),
+      expiresIn: '60s'
+    }
   }
 }
