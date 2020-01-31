@@ -2,7 +2,7 @@
 // add to the top of the file
 const User = use('App/Models/User')
 const Hash = use('Hash')
-
+const Database = use('Database')
 class UserController {
     async signup({ request, auth, response }) {
         // get user data from signup form
@@ -12,7 +12,6 @@ class UserController {
             // save user to database
             // console.log(userData)
             const user = await User.create(userData)
-            console.log(user)
             // generate JWT token for user
             const token = await auth.generate(user)
 
@@ -87,6 +86,33 @@ class UserController {
         }
     }
 
+    // insert user to home
+    async updateHomeId({request, auth, response}) {
+        try {
+            //get current home id from admin
+            const homeId = await Database
+            .select('home_id')
+            .from('users')
+            .where('id', auth.current.user.id)
+            //insert user to home 
+            const userId = await Database
+                .table('users')
+                .where('email', request.input('email'))
+                .update('home_id', homeId[0].home_id)
+
+            return response.status(200).json({
+                message: 'success',
+                data: userId
+            })
+        } catch(error) {
+            response.status(400).json({
+                status: 'error',
+                message: 'Cant insert user to home'
+            })
+        }
+        
+    }
+
     async changePassword({ request, auth, response }) {
         // get currently authenticated user
         const user = auth.current.user
@@ -114,104 +140,7 @@ class UserController {
             message: 'Password updated!'
         })
     }
-
-    async showProfile({ request, params, response }) {
-        try {
-            const user = await User.query()
-                .where('username', params.username)
-                .with('tweets', builder => {
-                    builder.with('user')
-                    builder.with('favorites')
-                    builder.with('replies')
-                })
-                .with('following')
-                .with('followers')
-                .with('favorites')
-                .with('favorites.tweet', builder => {
-                    builder.with('user')
-                    builder.with('favorites')
-                    builder.with('replies')
-                })
-                .firstOrFail()
-
-            return response.json({
-                status: 'success',
-                data: user
-            })
-        } catch (error) {
-            return response.status(404).json({
-                status: 'error',
-                message: 'User not found'
-            })
-        }
-    }
-
-    async usersToFollow({ params, auth, response }) {
-        // get currently authenticated user
-        const user = auth.current.user
-
-        // get the IDs of users the currently authenticated user is already following
-        const usersAlreadyFollowing = await user.following().ids()
-
-        // fetch users the currently authenticated user is not already following
-        const usersToFollow = await User.query()
-            .whereNot('id', user.id)
-            .whereNotIn('id', usersAlreadyFollowing)
-            .pick(3)
-
-        return response.json({
-            status: 'success',
-            data: usersToFollow
-        })
-    }
-
-    async follow({ request, auth, response }) {
-        // get currently authenticated user
-        const user = auth.current.user
-
-        // add to user's followers
-        await user.following().attach(request.input('user_id'))
-
-        return response.json({
-            status: 'success',
-            data: null
-        })
-    }
-
-    async unFollow({ params, auth, response }) {
-        // get currently authenticated user
-        const user = auth.current.user
-
-        // remove from user's followers
-        await user.following().detach(params.id)
-
-        return response.json({
-            status: 'success',
-            data: null
-        })
-    }
-
-    async timeline({ auth, response }) {
-        const user = await User.find(auth.current.user.id)
-
-        // get an array of IDs of the user's followers
-        const followersIds = await user.following().ids()
-
-        // add the user's ID also to the array
-        followersIds.push(user.id)
-
-        const tweets = await Tweet.query()
-            .whereIn('user_id', followersIds)
-            .with('user')
-            .with('favorites')
-            .with('replies')
-            .fetch()
-
-        return response.json({
-            status: 'success',
-            data: tweets
-        })
-    }
+    
 }
 
 module.exports = UserController

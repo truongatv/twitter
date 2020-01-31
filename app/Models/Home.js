@@ -7,6 +7,10 @@ class Home extends Model {
     living_costs() {
         return this.manyThrough('App/Models/User', 'living_costs')
     }
+
+    users() {
+        return this.hasMany('App/Models/User')
+    }
 }
 
 module.exports = Home

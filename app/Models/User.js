@@ -28,7 +28,7 @@ class User extends Model {
   living_costs () {
     return this
         .belongsToMany('App/Models/LivingCost')
-        .pivotTable('App/Models/Beneficiary')
+        .pivotModel('App/Models/Beneficiary')
   }
 
 
