@@ -124,12 +124,12 @@ class UserController {
         )
 
         // display appropriate message
-        if (!verifyPassword) {
-            return response.status(400).json({
-                status: 'error',
-                message: 'Current password could not be verified! Please try again.'
-            })
-        }
+        // if (!verifyPassword) {
+        //     return response.status(400).json({
+        //         status: 'error',
+        //         message: 'Current password could not be verified! Please try again.'
+        //     })
+        // }
 
         // hash and save new password
         user.password = await Hash.make(request.input('newPassword'))

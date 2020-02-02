@@ -1,6 +1,7 @@
 'use strict'
 const Database = use('Database')
 const User = use('App/Models/User')
+const Home = use('App/Models/Home')
 class CostController {
     /*
     create new living cost
@@ -44,7 +45,9 @@ class CostController {
             })
 
         } catch(error) {
-            console.log(error)
+            return response.status(400).json({
+                message: error.sqlMessage
+            })
         }
     }
 
@@ -52,24 +55,43 @@ class CostController {
     * get cost living of personal
     */
     async getUserCost({request, auth, response}) {
-        const user = await User.find(auth.current.user.id)
-        const date_pay_start = request.input('date_pay_start')
-        const date_pay_end = request.input('date_pay_start')
-        const user_cost = await user
-                .living_costs()
-                .where('date_pay', '>=', date_pay_start)
-                .where('date_pay', '<=', date_pay_end)
-                .fetch()
-        return response.json({
-            data: user_cost
-        })
+        try {
+            const user = await User.find(auth.current.user.id)
+            const date_pay_start = request.input('date_pay_start')
+            const date_pay_end = request.input('date_pay_start')
+            const user_cost = await user
+                    .living_costs()
+                    .where('date_pay', '>=', date_pay_start)
+                    .where('date_pay', '<=', date_pay_end)
+                    .fetch()
+            return response.json({
+                data: user_cost
+            })
+        } catch (error) {
+            return response.status(400).json({
+                message: error.sqlMessage
+            })
+        }
     }
 
     /*
     get cost living of home
     */
     async getHomeCost({request, auth, response}) {
-
+        try {
+            const home = await Home
+                .query()
+                .with('users', (builder) => {builder.where('id', auth.current.user.id) })
+                .with('living_costs')
+                .fetch()
+            return response.json({
+                data: home
+            })
+        } catch (error) {
+            return response.status(400).json({
+                message: error.sqlMessage
+            })
+        }
     }
 }
 

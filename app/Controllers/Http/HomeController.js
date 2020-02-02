@@ -89,6 +89,74 @@ class HomeController {
 
         return homeInfo
     }
+
+    /**
+    add new member to home
+    */
+    async addMember({request, auth, response}) {
+        try {
+            if(await this.checkIsAdminHome(auth) == false) {
+                throw 'notAdminHome'
+            } else {
+                const userEmail = request.input('email')
+                //get user's home_id
+                const user = await User.findBy('email', userEmail)
+                if(!user) { //push throw user not exist
+                    throw 'userNotExist'
+                } else if(!user.toJSON().home_id) {
+                    //get home_id from admin user
+                    const home_id = await User
+                        .query()
+                        .select('home_id')
+                        .where('id', auth.current.user.id)
+                        .fetch()
+                    //push home_id to user | add user to home
+                    await User
+                        .query()
+                        .update({ home_id:  home_id.toJSON()[0].home_id})
+                        .where('id', user.toJSON().id)
+                } else {
+                    throw 'userIsReadyInOtherHome'
+                }
+            }
+        } catch (error) {
+            if(error == 'notAdminHome') {
+                return response.status(400).json({
+                    message: "use not home's admin"
+                })
+            } else if(error == 'userIsReadyInOtherHome') {
+                return response.status(400).json({
+                    message: "user is ready in other Home"
+                })
+            }  else if(error == 'userNotExist') {
+                return response.status(400).json({
+                    message: 'user not exits'
+                })
+            }
+            else {
+                return response.status(400).json({
+                    message: error
+                })
+            }
+        }
+    }
+
+    /**
+    check user is home's admin
+    */
+    async checkIsAdminHome(auth) {
+        const home = await Home
+            .query()
+            .select('admin_id')
+            .with('users')
+            .where('admin_id', auth.current.user.id)
+            .fetch()
+        if(home.rows.length > 0) {
+            return true
+        } else {
+            return false
+        }
+    }
 }
 
 module.exports = HomeController

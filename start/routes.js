@@ -35,6 +35,7 @@ Route.group(() => {
   Route.get('/home_info', 'HomeController.homeInfo')
   Route.put('/update_home', 'HomeController.homeUpdate')
   Route.get('/list_user', 'HomeController.listUser')
+  Route.post('/add_member', 'HomeController.addMember')
 })
   .prefix('home')
   .middleware(['auth:jwt'])
