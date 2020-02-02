@@ -12,7 +12,8 @@ class HomeController {
             admin_id: 'homes.admin_id', 
             full_name: 'users.name', 
             username: 'users.username', 
-            user_id: 'users.id'
+            user_id: 'users.id',
+            user_email: 'users.email'
         }
         const homeInfo = await this.getHomeInfo(auth.current.user.id, column)
         if(homeInfo.length > 0) {
@@ -139,6 +140,13 @@ class HomeController {
                 })
             }
         }
+    }
+
+    /**
+    remove user from home
+    */
+    async removeMember({request, auth, response}) {
+        const removeUserEmail = request.input('email_remove')
     }
 
     /**
