@@ -3,6 +3,7 @@
 const User = use('App/Models/User')
 const Hash = use('Hash')
 const Database = use('Database')
+const Config = use('Config')
 class UserController {
     async signup({ request, auth, response }) {
         // get user data from signup form
@@ -107,7 +108,7 @@ class UserController {
         } catch(error) {
             response.status(400).json({
                 status: 'error',
-                message: 'Cant insert user to home'
+                message: Config.get('errors.message.contInsertUserToHome')
             })
         }
         

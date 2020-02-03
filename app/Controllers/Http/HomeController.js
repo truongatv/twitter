@@ -2,6 +2,7 @@
 const User = use('App/Models/User')
 const Home = use('App/Models/Home')
 const Database = use('Database')
+const Config = use('Config')
 
 class HomeController {
     async homeInfo({auth, response}) {
@@ -23,7 +24,7 @@ class HomeController {
             })
         } else {
             return response.status(400).json({
-                status: 'error'
+                message: 'error'
             })
         }
     }
@@ -93,17 +94,18 @@ class HomeController {
 
     /**
     add new member to home
+    request: {email}
     */
     async addMember({request, auth, response}) {
         try {
             if(await this.checkIsAdminHome(auth) == false) {
-                throw 'notAdminHome'
+                throw Config.get('errors.message.notAdminHome')
             } else {
                 const userEmail = request.input('email')
                 //get user's home_id
                 const user = await User.findBy('email', userEmail)
                 if(!user) { //push throw user not exist
-                    throw 'userNotExist'
+                    throw  Config.get('errors.message.userNotExist')
                 } else if(!user.toJSON().home_id) {
                     //get home_id from admin user
                     const home_id = await User
@@ -116,22 +118,25 @@ class HomeController {
                         .query()
                         .update({ home_id:  home_id.toJSON()[0].home_id})
                         .where('id', user.toJSON().id)
+                    return response.status(201).json({
+                        data: user
+                    })
                 } else {
-                    throw 'userIsReadyInOtherHome'
+                    throw Config.get('errors.message.userIsReadyInOtherHome')
                 }
             }
         } catch (error) {
-            if(error == 'notAdminHome') {
+            if(error == Config.get('errors.message.notAdminHome')) {
                 return response.status(400).json({
-                    message: "use not home's admin"
+                    message: Config.get('errors.message.notAdminHome')
                 })
-            } else if(error == 'userIsReadyInOtherHome') {
+            } else if(error == Config.get('errors.message.userIsReadyInOtherHome')) {
                 return response.status(400).json({
-                    message: "user is ready in other Home"
+                    message: Config.get('errors.message.userIsReadyInOtherHome')
                 })
-            }  else if(error == 'userNotExist') {
+            }  else if(error == Config.get('errors.message.userNotExist')) {
                 return response.status(400).json({
-                    message: 'user not exits'
+                    message: Config.get('errors.message.userNotExist')
                 })
             }
             else {
@@ -144,9 +149,40 @@ class HomeController {
 
     /**
     remove user from home
+    request: {remove_user_id}
     */
     async removeMember({request, auth, response}) {
-        const removeUserEmail = request.input('email_remove')
+        try {
+            console.log(request)
+            const adminHomeId = await User
+                .query()
+                .select('home_id')
+                .whereIn('id', [auth.current.user.id, request.input('remove_user_id')])
+                .fetch()
+            if(adminHomeId.toJSON()[0].home_id == adminHomeId.toJSON()[1].home_id) {
+                const result = await User
+                    .query()
+                    .where('id', request.input('remove_user_id'))
+                    .update({ home_id: null })
+                return response.status(200).json({
+                    data: 1
+                })
+            } else {
+                throw Config.get('errors.message.userNotExistInHome')
+            }
+            
+        } catch (error) {
+            if(error == Config.get('errors.message.userNotExistInHome')) {
+                return response.status(400).json({
+                    message: Config.get('errors.message.userNotExistInHome')
+                })
+            } else {
+                return response.status(400).json({
+                    message: error.sqlMessage
+                })
+            }
+        }
+        
     }
 
     /**
