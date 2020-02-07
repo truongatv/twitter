@@ -17,18 +17,20 @@ class CostController {
                 .select('home_id')
                 .table('users')
                 .where('id', auth.current.user.id)
+            //change type of date pay
+            const datePay = new Date(request.input('datePay') + "Z")
             const costId = await Database
                 .table('living_costs')
                 .insert({
                     'name': request.input('name'),
-                    'date_pay': request.input('date_pay'),
-                    'payer_id': request.input('payer_id'),
+                    'date_pay': datePay,
+                    'payer_id': request.input('payerId'),
                     'home_id': homeId[0].home_id,
                     'price' : request.input('price'),
                     'detail' : request.input('detail')
                 })
             //create array separate elements for insert to pivot table
-            const user_ids = request.input('user_ids')
+            const user_ids = request.input('receiver')
             const fieldsToInsert = user_ids.map(user_id => 
                 (
                     {

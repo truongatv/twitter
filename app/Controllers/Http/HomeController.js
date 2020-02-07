@@ -5,6 +5,9 @@ const Database = use('Database')
 const Config = use('Config')
 
 class HomeController {
+    /**
+     * get all info of home 
+     */
     async homeInfo({auth, response}) {
         //setup column need get
         const column = {
@@ -28,35 +31,48 @@ class HomeController {
             })
         }
     }
-
+    
+    /**
+     * update home info
+     * @param {string} name Home's name.
+     * @param {string} address Home's address
+     */
     async homeUpdate({request, auth, response}) {
-        const homeId = await Database
-            .select('home_id')
-            .table('users')
-            .innerJoin('homes', 'users.home_id', 'homes.id')
-            .where('users.id', auth.current.user.id)
-            .limit(1)
-        if(homeId.length == 0) {
-            const id = await Database
-                .table('homes')
-                .insert({
-                    'name': request.input('name'),
-                    'address': request.input('address'),
-                    'admin_id': auth.current.user.id
-                })
-        } else {
-            const id = await Database
-                .table('homes')
-                .where('id', homeId[0].home_id)
-                .update({
-                    'name': request.input('name'),
-                    'address': request.input('address')
-                })
-        }
+        try{
+            const homeId = await Database
+                .select('home_id')
+                .table('users')
+                .innerJoin('homes', 'users.home_id', 'homes.id')
+                .where('users.id', auth.current.user.id)
+                .limit(1)
+            if(homeId.length == 0) {
+                const id = await Database
+                    .table('homes')
+                    .insert({
+                        'name': request.input('name'),
+                        'address': request.input('address'),
+                        'admin_id': auth.current.user.id
+                    })
+            } else {
+                const id = await Database
+                    .table('homes')
+                    .where('id', homeId[0].home_id)
+                    .update({
+                        'name': request.input('name'),
+                        'address': request.input('address')
+                    })
+            }
 
-        return response.status(200).json({
-            status: 'success'
-        })
+            return response.status(200).json({
+                status: 'success',
+                message: Config.get('response.message.saveSuccess')
+            })
+        } catch(error) {
+            return response.status(400).json({
+                status: 'error',
+                message: Config.get('response.message.cantSave')
+            })
+        }
     }
 
     async listUser({auth, response}) {
@@ -75,7 +91,11 @@ class HomeController {
         
     }
 
-    //get home info and list user
+    /**
+    *get home info and list user
+    * @param {int} userId user's id
+    * @param {json} column list column select
+    */
     async getHomeInfo(userId, column) {
         const home_id = await Database
             .select('homes.id')
@@ -94,7 +114,7 @@ class HomeController {
 
     /**
     add new member to home
-    request: {email}
+    * @param {string} email user's email
     */
     async addMember({request, auth, response}) {
         try {
@@ -124,7 +144,7 @@ class HomeController {
                 } else {
                     throw Config.get('errors.message.userIsReadyInOtherHome')
                 }
-            }
+            }                                                                                                                                                                                                                                                                                                                          
         } catch (error) {
             if(error == Config.get('errors.message.notAdminHome')) {
                 return response.status(400).json({
@@ -149,11 +169,10 @@ class HomeController {
 
     /**
     remove user from home
-    request: {remove_user_id}
+    *@param {int} remove_user_id user's id need remove
     */
     async removeMember({request, auth, response}) {
         try {
-            console.log(request)
             const adminHomeId = await User
                 .query()
                 .select('home_id')
@@ -186,7 +205,8 @@ class HomeController {
     }
 
     /**
-    check user is home's admin
+    *check user is home's admin
+    *@param {auth} auth authentication variable
     */
     async checkIsAdminHome(auth) {
         const home = await Home
@@ -199,6 +219,43 @@ class HomeController {
             return true
         } else {
             return false
+        }
+    }
+
+    /**
+    * get home members
+    */
+    async getHomeMember({auth, response}) {
+        try{
+            const currentUser = await User.find(auth.current.user.id)
+            if(currentUser.home_id) {
+                const homeMember = await User
+                    .query()
+                    .select(`id`, `name`, `username`, `email`, `home_id`)
+                    .where('home_id', currentUser.home_id)
+                    .fetch()
+                
+                return response.status(200).json({
+                    data: homeMember.toJSON()
+                })
+            } else {
+                const homeMember = [
+                    {
+                        id: currentUser.id,
+                        name: currentUser.name,
+                        username: currentUser.username,
+                        email: currentUser.email,
+                        home_id: currentUser.home_id 
+                    }
+                ]
+                return response.status(200).json({
+                    data: homeMember
+                })
+            }
+        } catch(error) {
+            return response.status(400).json({
+                data: error.sqlMessage
+            })
         }
     }
 }

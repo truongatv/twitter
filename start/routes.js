@@ -33,6 +33,7 @@ Route.group(() => {
 
 Route.group(() => {
   Route.get('/home_info', 'HomeController.homeInfo')
+  Route.get('home_member', 'HomeController.getHomeMember')
   Route.put('/update_home', 'HomeController.homeUpdate')
   Route.get('/list_user', 'HomeController.listUser')
   Route.post('/add_member', 'HomeController.addMember')
