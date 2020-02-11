@@ -9,25 +9,36 @@ class HomeController {
      * get all info of home 
      */
     async homeInfo({auth, response}) {
-        //setup column need get
-        const column = {
-            home_name: 'homes.name', 
-            address: 'homes.address', 
-            admin_id: 'homes.admin_id', 
-            full_name: 'users.name', 
-            username: 'users.username', 
-            user_id: 'users.id',
-            user_email: 'users.email'
-        }
-        const homeInfo = await this.getHomeInfo(auth.current.user.id, column)
-        if(homeInfo.length > 0) {
-            return response.status(200).json({
-                status: 'success',
-                data: homeInfo
-            })
-        } else {
+        try {
+            //setup home's data
+            let homeInfo = {
+                admin: {},
+                homeInfo: {},
+                members: []
+            }
+            //setup column need get
+            const column = {
+                full_name: 'users.name', 
+                username: 'users.username', 
+                user_id: 'users.id',
+                user_email: 'users.email'
+            }
+            homeInfo.homeInfo = await this.getHomeInfo(auth.current.user.id)
+            homeInfo.admin = await this.getHomeAdminInfo(homeInfo.homeInfo.id)
+            homeInfo.members = await this.getMemberInfo(homeInfo.homeInfo.id, column)
+            if(homeInfo.members.length > 0) {
+                return response.status(200).json({
+                    status: 'success',
+                    data: homeInfo
+                })
+            } else {
+                return response.status(400).json({
+                    message: 'error'
+                })
+            }
+        } catch (error) {
             return response.status(400).json({
-                message: 'error'
+                message: error.sqlMessage
             })
         }
     }
@@ -53,6 +64,10 @@ class HomeController {
                         'address': request.input('address'),
                         'admin_id': auth.current.user.id
                     })
+                await Database 
+                    .table('users')
+                    .update({ 'home_id':  id})
+                    .where('id', auth.current.user.id)
             } else {
                 const id = await Database
                     .table('homes')
@@ -96,20 +111,23 @@ class HomeController {
     * @param {int} userId user's id
     * @param {json} column list column select
     */
-    async getHomeInfo(userId, column) {
-        const home_id = await Database
-            .select('homes.id')
-            .table('users')
-            .innerJoin('homes', 'users.home_id', 'homes.id')
-            .where('users.id', userId)
-            .limit(1)
-        const homeInfo = await Database
-            .select(column)
-            .table('users')
-            .innerJoin('homes', 'users.home_id', 'homes.id')
-            .where('users.home_id', home_id[0].id)
-
-        return homeInfo
+    async getHomeInfo(userId) {
+        try {
+            const home_id = await Database
+                .select('home_id')
+                .table('users')
+                .where('users.id', userId)
+            if(home_id.length > 0) {
+                const homeInfo = await Database
+                    .table('homes')
+                    .where('id', home_id[0].home_id)
+                return homeInfo[0]
+            } else {
+                return {}
+            }
+        } catch (error) {
+            return false
+        }
     }
 
     /**
@@ -256,6 +274,40 @@ class HomeController {
             return response.status(400).json({
                 data: error.sqlMessage
             })
+        }
+    }
+
+    /**
+    *get home's admin info
+    *@param int homeId home's id
+    */
+    async getHomeAdminInfo(homeId) {
+        try {
+            const result = await Database 
+                .select('users.id', 'users.name')
+                .table('users')
+                .innerJoin('homes', 'users.id', 'homes.admin_id')
+                .where('homes.id', homeId)
+            return result[0]
+        } catch (error) {
+            return {}
+        }
+    }
+
+    /**
+    *get home's member info  
+    *@param int homeId home's id 
+    */
+    async getMemberInfo(homeId, column) {
+        try {
+            const homeInfo = await Database
+                .select(column)
+                .table('users')
+                .innerJoin('homes', 'users.home_id', 'homes.id')
+                .where('users.home_id', homeId)
+            return homeInfo
+        } catch (error) {
+            console.log(error)
         }
     }
 }

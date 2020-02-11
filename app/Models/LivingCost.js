@@ -4,6 +4,11 @@
 const Model = use('Model')
 
 class LivingCost extends Model {
+    users () {
+        return this
+            .belongsToMany('App/Models/User')
+            .pivotModel('App/Models/Beneficiary')
+    }
 }
 
 module.exports = LivingCost

@@ -32,11 +32,11 @@ Route.group(() => {
   .middleware(['auth:jwt'])
 
 Route.group(() => {
-  Route.get('/home_info', 'HomeController.homeInfo')
+  Route.get('/home_info', 'HomeController.homeInfo').middleware(['HomeExist'])
   Route.get('home_member', 'HomeController.getHomeMember')
   Route.put('/update_home', 'HomeController.homeUpdate')
   Route.get('/list_user', 'HomeController.listUser')
-  Route.post('/add_member', 'HomeController.addMember')
+  Route.post('/add_member', 'HomeController.addMember').middleware(['HomeExist'])
   Route.put('/remove_member', 'HomeController.removeMember')
 })
   .prefix('home')
