@@ -89,7 +89,7 @@ class CostController {
                 const living_cost = await LivingCost.find(user_costs[i].id)
                 const list_user_ben = await living_cost
                     .users()
-                    .select('id', 'name', 'username', 'email')
+                    .select('id', 'name', 'email')
                     .fetch()
                 user_costs[i].receiver = list_user_ben.toJSON()
             }
@@ -177,16 +177,16 @@ class CostController {
     remove cost
     request: {id}
     */
-    async removeCost({request, auth, response}) {
+    async removeCost({params, request, auth, response}) {
         try {
-            console.log(Config.get('errors.message.userIsNotCreatorCost'))
-            const beneficiary = await Beneficiary.findBy('living_cost_id', request.input('id'))
-            const result = await beneficiary.delete()
-
+            const beneficiary = await Beneficiary.findBy('living_cost_id', params.id)
+            const living_cost = await LivingCost.find(params.id)
+            const result = await beneficiary.delete() && await living_cost.delete()
             return response.status(200).json({
                 data: result
             })
         } catch (error) {
+            console.log(error)
             return response.status(400).json({
                 message: error.sqlMessage
             })

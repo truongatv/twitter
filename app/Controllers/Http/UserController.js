@@ -7,7 +7,7 @@ const Config = use('Config')
 class UserController {
     async signup({ request, auth, response }) {
         // get user data from signup form
-        const userData = request.only(['name', 'username', 'email', 'password'])
+        const userData = request.only(['name', 'email', 'password'])
 
         try {
             // save user to database
@@ -140,6 +140,19 @@ class UserController {
             status: 'success',
             message: 'Password updated!'
         })
+    }
+
+    async checkExistEmail({ request, auth, response }) {
+        const email = await User.findBy('email',request.input('email'))
+        if(email) {
+            return response.json({
+                data: true
+            })
+        } else {
+            return response.json({
+                data:false
+            })
+        }
     }
     
 }

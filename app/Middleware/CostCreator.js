@@ -11,11 +11,11 @@ class CostCreator {
    * @param {Request} ctx.request
    * @param {Function} next
    */
-  async handle ({ request, auth, response }, next) {
+  async handle ({ params, request, auth, response }, next) {
     // call next to advance the request
     const payer_id = await LivingCost
       .query()
-      .where('id', request.input('id'))
+      .where('id', params.id > 0 ? params.id : request.input('id'))
       .where('payer_id', auth.current.user.id)
       .fetch()
     if(payer_id.rows.length > 0) {
