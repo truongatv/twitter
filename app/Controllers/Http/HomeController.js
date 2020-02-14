@@ -19,7 +19,6 @@ class HomeController {
             //setup column need get
             const column = {
                 full_name: 'users.name', 
-                username: 'users.username', 
                 user_id: 'users.id',
                 user_email: 'users.email'
             }
@@ -94,7 +93,6 @@ class HomeController {
         const column = {
             admin_id: 'homes.admin_id', 
             full_name: 'users.name', 
-            username: 'users.username', 
             user_id: 'users.id'
         }
         const homeInfo = await this.getHomeInfo(auth.current.user.id, column)
@@ -249,7 +247,7 @@ class HomeController {
             if(currentUser.home_id) {
                 const homeMember = await User
                     .query()
-                    .select(`id`, `name`, `username`, `email`, `home_id`)
+                    .select(`id`, `name`, `email`, `home_id`)
                     .where('home_id', currentUser.home_id)
                     .fetch()
                 
@@ -261,7 +259,6 @@ class HomeController {
                     {
                         id: currentUser.id,
                         name: currentUser.name,
-                        username: currentUser.username,
                         email: currentUser.email,
                         home_id: currentUser.home_id 
                     }

@@ -22,6 +22,7 @@ Route.get('/', () => {
 
 Route.post('/signup', 'UserController.signup')
 Route.post('/login', 'UserController.login')
+Route.get('/check_exist_email', 'UserController.checkExistEmail')
 Route.group(() => {
   Route.get('/profile', 'UserController.profile')
   Route.put('/update_profile', 'UserController.updateProfile')
@@ -47,7 +48,7 @@ Route.group(() => {
   Route.get('/get_user_cost', 'CostController.getUserCost')
   Route.get('/get_home_cost', 'CostController.getHomeCost')
   Route.put('/update_cost', 'CostController.updateCost').middleware(['CostCreator'])
-  Route.delete('/remove_cost', 'CostController.removeCost').middleware(['CostCreator'])
+  Route.delete('/remove_cost/:id', 'CostController.removeCost').middleware(['CostCreator'])
 })
   .prefix('cost')
   .middleware(['auth:jwt'])
