@@ -46,8 +46,8 @@ class CostController {
 
             return response.status(200).json({
                 data: {
-                    beneficiariesId: beneficiariesId,
-                    costId: costId
+                    beneficiaries_id: beneficiariesId[0],
+                    living_cost_id: costId[0]
                 }
             })
 
@@ -139,19 +139,23 @@ class CostController {
                     price: request.input('price'),
                     detail: request.input('detail')
                 })
+
+            console.log(request.input('id'), request.input('payer_id'))
             //delete data from pivot table
-            const beneficiary = await Beneficiary.findBy('living_cost_id', request.input('id'))
-            await beneficiary.delete()
+            await Database 
+                .table('beneficiaries')
+                .where('living_cost_id', request.input('id'))
+                .delete()
             //create array separate elements for new insert to pivot table
-            const user_ids = request.input('user_ids')
+            const user_ids = request.input('receiver')
             const fieldsToInsert = user_ids.map(user_id => 
                 (
                     {
                         living_cost_id: request.input('id'),
-                        user_id: user_id
+                        user_id: user_id.id
                     }
                 ));  
-            //update data to pivot table 
+            //update data to pivot table
             const beneficiariesId = await Database
                 .table('beneficiaries')
                 .insert(fieldsToInsert)
@@ -161,6 +165,7 @@ class CostController {
             })
             
         } catch (error) {
+            console.log(error)
             if(error == Config.get('errors.message.userIsNotCreatorCost')) {
                 return response.status(400).json({
                     message: Config.get('errors.message.userIsNotCreatorCost')
