@@ -25,7 +25,7 @@ class CostController {
                 .insert({
                     'name': request.input('name'),
                     'date_pay': date_pay,
-                    'payer_id': request.input('payer_id'),
+                    'payer_id': request.input('payer').id,
                     'home_id': homeId[0].home_id,
                     'price' : request.input('price'),
                     'detail' : request.input('detail')
@@ -64,35 +64,9 @@ class CostController {
     */
     async getUserCost({request, auth, response}) {
         try {
-            //set date start , date end
-            let date_pay_start = moment().startOf('month').format('YYYY-MM-DD')
-            let date_pay_end = moment().endOf('month').format('YYYY-MM-DD');
-
-            const user = await User.find(auth.current.user.id)
-            if(request.input('date_pay_start')) {
-                date_pay_start = request.input('date_pay_start')
-            }
-            if(request.input('date_pay_end')) {
-                date_pay_end = request.input('date_pay_end')
-            }
-            let user_costs = await user
-                    .living_costs()
-                    .where('date_pay', '>=', date_pay_start)
-                    .where('date_pay', '<=', date_pay_end)
-                    .fetch()
-            user_costs = user_costs.toJSON()
-            // push payer info to response data 
-            for(let i = 0; i< user_costs.length; i++) {
-                const user_info = await User.find(user_costs[i].payer_id)
-                user_costs[i].payer_name = user_info.name
-                user_costs[i].date_pay = moment(user_costs[i].date_pay).format("YYYY-MM-DD")
-                const living_cost = await LivingCost.find(user_costs[i].id)
-                const list_user_ben = await living_cost
-                    .users()
-                    .select('id', 'name', 'email')
-                    .fetch()
-                user_costs[i].receiver = list_user_ben.toJSON()
-            }
+            
+            const user_id = auth.current.user.id
+            const user_costs = await this.getCost(user_id, request)
             return response.json({
                 data: user_costs
             })
@@ -107,21 +81,80 @@ class CostController {
     /*
     get cost living of home
     */
-    async getHomeCost({auth, response}) {
+    async getHomeCost({request, auth, response}) {
         try {
-            const home = await Home
-                .query()
-                .with('users', (builder) => {builder.where('id', auth.current.user.id) })
-                .with('living_costs')
-                .fetch()
-            return response.json({
-                data: home
+            //get home's id
+            const current_user = await User.find(auth.current.user.id)
+            const home_id = current_user.home_id
+            //get home's members
+            const result = await User.query().where('home_id', home_id).fetch()
+            const members = result.toJSON()
+            let home_costs = [];
+            for(let i = 0; i < members.length; i++) {
+                const cost = await this.getCost(members[i].id, request)
+                // home_costs.push(cost)
+                // push cost to home cost
+                for(let j = 0; j < cost.length ; j++) {
+                    //check cost is exist home cost ?
+                    if(home_costs.some(element => element.id === cost[j].id)) continue
+                    else {
+                        home_costs.push(cost[j])
+                    }
+                }
+            }
+            
+            return response.status(200).json({
+                data: home_costs
             })
         } catch (error) {
+            console.log(error)
             return response.status(400).json({
                 message: error.sqlMessage
             })
         }
+    }
+
+    /**
+     * get cost
+     * @param {integer} user user's id 
+     * @param {request} request frontend request
+     */
+    async getCost(user_id, request) {
+        //get user info
+        const user = await User.find(user_id)
+        //set date start , date end
+        let date_pay_start = moment().startOf('month').format('YYYY-MM-DD')
+        let date_pay_end = moment().endOf('month').format('YYYY-MM-DD');
+        if(request.input('date_pay_start')) {
+            date_pay_start = request.input('date_pay_start')
+        }
+        if(request.input('date_pay_end')) {
+            date_pay_end = request.input('date_pay_end')
+        }
+        let user_costs = await user
+                .living_costs()
+                .where('date_pay', '>=', date_pay_start)
+                .where('date_pay', '<=', date_pay_end)
+                .fetch()
+        user_costs = user_costs.toJSON()
+        // push payer info to response data 
+        for(let i = 0; i< user_costs.length; i++) {
+            const user_info = await User.find(user_costs[i].payer_id)
+            user_costs[i].payer = {
+                name: user_info.name,
+                id: user_info.id,
+                email: user_info.email
+            }
+            user_costs[i].date_pay = moment(user_costs[i].date_pay).format("YYYY-MM-DD")
+            const living_cost = await LivingCost.find(user_costs[i].id)
+            const list_user_ben = await living_cost
+                .users()
+                .select('id', 'name', 'email')
+                .fetch()
+            user_costs[i].receiver = list_user_ben.toJSON()
+        }
+
+        return user_costs
     }
 
     /**
@@ -134,13 +167,13 @@ class CostController {
                 .query()
                 .where('id', request.input('id'))
                 .update({
+                    name: request.input('name'),
                     date_pay: request.input('date_pay'),
                     payer_id: request.input('payer_id'),
                     price: request.input('price'),
                     detail: request.input('detail')
                 })
 
-            console.log(request.input('id'), request.input('payer_id'))
             //delete data from pivot table
             await Database 
                 .table('beneficiaries')
