@@ -46,6 +46,7 @@ class HomeController {
      * update home info
      * @param {string} name Home's name.
      * @param {string} address Home's address
+     * @param {string} admin_id Home's admin id
      */
     async homeUpdate({request, auth, response}) {
         try{
@@ -73,7 +74,8 @@ class HomeController {
                     .where('id', homeId[0].home_id)
                     .update({
                         'name': request.input('name'),
-                        'address': request.input('address')
+                        'address': request.input('address'),
+                        'admin_id': request.input('admin_id')
                     })
             }
 

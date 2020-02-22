@@ -25,7 +25,7 @@ class CostController {
                 .insert({
                     'name': request.input('name'),
                     'date_pay': date_pay,
-                    'payer_id': request.input('payer_id'),
+                    'payer_id': request.input('payer').id,
                     'home_id': homeId[0].home_id,
                     'price' : request.input('price'),
                     'detail' : request.input('detail')
@@ -84,7 +84,10 @@ class CostController {
             // push payer info to response data 
             for(let i = 0; i< user_costs.length; i++) {
                 const user_info = await User.find(user_costs[i].payer_id)
-                user_costs[i].payer_name = user_info.name
+                user_costs[i].payer = {
+                    name: user_info.name,
+                    id: user_info.id
+                }
                 user_costs[i].date_pay = moment(user_costs[i].date_pay).format("YYYY-MM-DD")
                 const living_cost = await LivingCost.find(user_costs[i].id)
                 const list_user_ben = await living_cost
@@ -135,12 +138,11 @@ class CostController {
                 .where('id', request.input('id'))
                 .update({
                     date_pay: request.input('date_pay'),
-                    payer_id: request.input('payer_id'),
+                    payer_id: request.input('payer').id,
                     price: request.input('price'),
-                    detail: request.input('detail')
+                    detail: request.input('detail'),
+                    name: request.input('name')
                 })
-
-            console.log(request.input('id'), request.input('payer_id'))
             //delete data from pivot table
             await Database 
                 .table('beneficiaries')
