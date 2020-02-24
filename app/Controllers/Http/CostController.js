@@ -64,7 +64,6 @@ class CostController {
     */
     async getUserCost({request, auth, response}) {
         try {
-            
             const user_id = auth.current.user.id
             const user_costs = await this.getCost(user_id, request)
             return response.json({
@@ -127,9 +126,12 @@ class CostController {
         let date_pay_end = moment().endOf('month').format('YYYY-MM-DD');
         if(request.input('date_pay_start')) {
             date_pay_start = request.input('date_pay_start')
+            date_pay_start = moment(date_pay_start).startOf('month').format('YYYY-MM-DD')
+            console.log(date_pay_start)
         }
         if(request.input('date_pay_end')) {
             date_pay_end = request.input('date_pay_end')
+            date_pay_end = moment(date_pay_end).endOf('month').format('YYYY-MM-DD')
         }
         let user_costs = await user
                 .living_costs()
