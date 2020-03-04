@@ -36,7 +36,7 @@ class UserController {
                 request.input('email'),
                 request.input('password')
             )
-
+            
             return response.json({
                 status: 'success',
                 data: token
@@ -155,6 +155,37 @@ class UserController {
         }
     }
     
+    /**
+     * get current language
+     * @return {json} language  
+     */
+    async getLanguage({auth, response}) {
+        const user_id = auth.current.user.id
+        const account = await User.find(user_id)
+        return response.status(200).json({
+            data: account.language
+        })
+    }
+
+    /**
+     * update language
+     */
+    async updateLanguage({request, auth, response}) {
+        try{
+            const user = auth.current.user
+            user.language = request.input('language')
+            await user.save()
+            return response.status(200).json({
+                status: 'success'
+            })    
+        } catch (error) {
+            return response.status(400).json({
+                status: 'error'
+            })
+        }
+        
+
+    }
 }
 
 module.exports = UserController
