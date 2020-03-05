@@ -23,6 +23,7 @@ Route.get('/', () => {
 Route.post('/signup', 'UserController.signup')
 Route.post('/login', 'UserController.login')
 Route.get('/check_exist_email', 'UserController.checkExistEmail')
+Route.put('/confirm_account', 'UserController.confirmAccount')
 Route.group(() => {
   Route.get('/profile', 'UserController.profile')
   Route.put('/update_profile', 'UserController.updateProfile')
