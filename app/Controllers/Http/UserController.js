@@ -52,20 +52,19 @@ class UserController {
 
     async login({ request, auth, response }) {
         try {
+            // validate the user credentials and generate a JWT token
+            const token = await auth.attempt(
+                request.input('email'),
+                request.input('password')
+            )
             //check account status
             const status = await User.findBy('email', request.input('email'))
-            if (status && status.status == 1) {
-                // validate the user credentials and generate a JWT token
-                const token = await auth.attempt(
-                    request.input('email'),
-                    request.input('password')
-                )
-
+            if(status.status == 1) {
                 return response.json({
                     status: 'success',
                     data: token
                 })
-            } else if (status && status.status == 0) {
+            } else {
                 throw Config.get('errors.message.needConfirmAccount')
             }
         } catch (error) {
@@ -75,7 +74,7 @@ class UserController {
                 })
             } else {
                 response.status(400).json({
-                    status: 'error',
+                    status: Config.get('errors.message.userNotExist'),
                     message: 'Invalid email/password'
                 })
             }
