@@ -8,6 +8,7 @@ const Config = use('Config')
 const Mail = use('Mail')
 const Env = use('Env')
 const crypto = require('crypto')
+const Cloudinary = use('Cloudinary')
 class UserController {
     async signup({ request, auth, response }) {
         // get user data from signup form
@@ -59,7 +60,7 @@ class UserController {
             )
             //check account status
             const status = await User.findBy('email', request.input('email'))
-            if(status.status == 1) {
+            if (status.status == 1) {
                 return response.json({
                     status: 'success',
                     data: token
@@ -120,7 +121,7 @@ class UserController {
                 builder.select('id', 'name')
             })
             .fetch()
-        
+
         return response.json({
             status: 'success',
             data: user
@@ -247,7 +248,39 @@ class UserController {
                 status: 'error'
             })
         }
-        
+
+    }
+
+    /**
+     * update user's avatar
+     * @author truongatv
+     */
+    async changeAvatar({ request, auth, response }) {
+        try {
+            const file = request.file('file', {
+                types: ['image']
+            })
+            let image = ''
+            if (file) {
+                const cloudinaryMeta = await Cloudinary.uploader.upload(file.tmpPath, null, {
+                    "folder": "cost_living"
+                })
+                image = cloudinaryMeta.secure_url
+            }
+            if (image) {
+                const user = await User.find(auth.current.user.id)
+                user.avatar = image
+                user.save()
+            }
+            return response.status(200).json({
+                data: image
+            })
+        } catch (error) {
+            return response.status(400).json({
+                status: 'error'
+            })
+        }
+
 
     }
 }

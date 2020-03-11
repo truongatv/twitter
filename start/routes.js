@@ -27,6 +27,7 @@ Route.put('/confirm_account', 'UserController.confirmAccount')
 Route.group(() => {
   Route.get('/profile', 'UserController.profile')
   Route.put('/update_profile', 'UserController.updateProfile')
+  Route.put('/change_ava', 'UserController.changeAvatar')
   Route.put('/change_password', 'UserController.changePassword')
   Route.put('/update_home', 'UserController.updateHomeId')
   Route.get('/get_language', 'UserController.getLanguage')
