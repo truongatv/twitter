@@ -7,5 +7,7 @@ module.exports = {
   userIsReadyInOtherHome: 404,
   userNotExist: 405,
   cantInsertUserToHome: 406,
-  homeNotExist: 407
+  homeNotExist: 407,
+  tokenNotExist: 408,
+  needConfirmAccount: 409
 }
