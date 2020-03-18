@@ -5,8 +5,6 @@ const Env = use('Env')
 
 /** @type {import('@adonisjs/ignitor/src/Helpers')} */
 const Helpers = use('Helpers')
-const Url = require('url-parse')
-const CLEARDB_DATABASE_URL = new Url(Env.get('JAWSDB_URL'))
 
 module.exports = {
   /*
@@ -53,11 +51,11 @@ module.exports = {
   mysql: {
     client: 'mysql',
     connection: {
-      host: Env.get('DB_HOST', CLEARDB_DATABASE_URL.host),
+      host: Env.get('DB_HOST', 'localhost'),
       port: Env.get('DB_PORT', ''),
-      user: Env.get('DB_USER', CLEARDB_DATABASE_URL.username),
-      password: Env.get('DB_PASSWORD', CLEARDB_DATABASE_URL.password),
-      database: Env.get('DB_DATABASE', CLEARDB_DATABASE_URL.pathname.substr(1))
+      user: Env.get('DB_USER', 'root'),
+      password: Env.get('DB_PASSWORD', ''),
+      database: Env.get('DB_DATABASE', 'adonis')
     },
     debug: Env.get('DB_DEBUG', false)
   },
@@ -75,11 +73,11 @@ module.exports = {
   pg: {
     client: 'pg',
     connection: {
-      host: 'jj820qt5lpu6krut.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
-      port: 3306,
-      user: 'akttll0nxue6flqg',
-      password: 'a2lfejo9n269w9mf',
-      database: 'tg1ui31nwdof1fj3'
+      host: Env.get('DB_HOST', 'localhost'),
+      port: Env.get('DB_PORT', ''),
+      user: Env.get('DB_USER', 'root'),
+      password: Env.get('DB_PASSWORD', ''),
+      database: Env.get('DB_DATABASE', 'adonis')
     },
     debug: Env.get('DB_DEBUG', false)
   }
