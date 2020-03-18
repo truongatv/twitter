@@ -20,7 +20,8 @@ class HomeController {
             const column = {
                 full_name: 'users.name', 
                 user_id: 'users.id',
-                user_email: 'users.email'
+                user_email: 'users.email',
+                avatar: 'users.avatar'
             }
             homeInfo.homeInfo = await this.getHomeInfo(auth.current.user.id)
             homeInfo.admin = await this.getHomeAdminInfo(homeInfo.homeInfo.id)
