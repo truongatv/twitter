@@ -143,7 +143,6 @@ class CostController {
         if (request.input('date_pay_start')) {
             date_pay_start = request.input('date_pay_start')
             date_pay_start = moment(date_pay_start).startOf('month').format('YYYY-MM-DD')
-            console.log(date_pay_start)
         }
         if (request.input('date_pay_end')) {
             date_pay_end = request.input('date_pay_end')
@@ -161,13 +160,14 @@ class CostController {
             user_costs[i].payer = {
                 name: user_info.name,
                 id: user_info.id,
-                email: user_info.email
+                email: user_info.email,
+                avatar: user_info.avatar
             }
             user_costs[i].date_pay = moment(user_costs[i].date_pay).format("YYYY-MM-DD")
             const living_cost = await LivingCost.find(user_costs[i].id)
             const list_user_ben = await living_cost
                 .users()
-                .select('id', 'name', 'email')
+                .select('id', 'name', 'email', 'avatar')
                 .fetch()
             user_costs[i].receiver = list_user_ben.toJSON()
         }
