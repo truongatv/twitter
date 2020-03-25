@@ -89,10 +89,20 @@ class UserController {
         try {
             const token = request.input('token')
             const email = request.input('email')
-            const user_token = await UserToken.findBy('email', email)
-            if (user_token && user_token.token == token) {
+            let user_token = await UserToken.query()
+                .where('email', email)
+                .where('type', 'C')
+                .where('token', token)
+                .fetch()
+            user_token = user_token.toJSON()
+            if (user_token.length > 0) {
                 try {
-                    await UserToken.query().where('email', email).delete()
+                    await UserToken
+                        .query()
+                        .where('email', email)
+                        .where('type', 'C')
+                        .where('token', token)
+                        .delete()
                 } catch (error) {
                     throw (error)
                 }
@@ -116,6 +126,7 @@ class UserController {
 
     async profile({ auth, response }) {
         const user = await User.query()
+            .setHidden(['password'])
             .where('id', auth.current.user.id)
             .with('home', builder => {
                 builder.select('id', 'name')
@@ -188,25 +199,124 @@ class UserController {
             request.input('password'),
             user.password
         )
-
         // display appropriate message
-        // if (!verifyPassword) {
-        //     return response.status(400).json({
-        //         status: 'error',
-        //         message: 'Current password could not be verified! Please try again.'
-        //     })
-        // }
-
+        if (!verifyPassword) {
+            return response.status(400).json({
+                status: 'error'
+            })
+        }
         // hash and save new password
-        user.password = await Hash.make(request.input('newPassword'))
+        user.password = request.input('new_password')
         await user.save()
 
         return response.json({
             status: 'success',
-            message: 'Password updated!'
         })
     }
 
+    /**
+     * send mail request reset password
+     * @author truongatv 
+     */
+    async requestResetPassword({request, response}) {
+        try {
+            const email = request.input('email')
+            // hash confirm account 
+            const confirm_token = await crypto.randomBytes(10).toString('hex')
+            //save token to db
+            let user_token = {
+                email: email,
+                token: confirm_token, 
+                type: 'R'
+            }    
+            await UserToken.create(user_token)
+            const sendmail_result = await Mail.send('emails.reset_password', {
+                email: email,
+                url: Env.get('APP_FRONT_URL'),
+                token: confirm_token
+            }, (message) => {
+                message
+                    .to(email)
+                    .from('truongatv2211@gmail.com')
+                    .subject('Đặt lại mật khẩu !')
+            })
+            console.log(sendmail_result)
+            return response.json({
+                status: 'success'
+            })
+        } catch (error) {
+            return response.status(400).json({
+                status: 'error',
+                message: error.sqlMessage,
+                type: 'warning'
+            })
+        }
+        
+    }
+    
+    /**
+     * reset password
+     * @author truongatv
+     *  
+     */
+    async resetPassword({request, response}) {  
+        try {
+            const email = request.input('email')
+            const token = request.input('token')
+            let user_token = await UserToken.query()
+                .where('email', email)
+                .where('type', 'R')
+                .where('token', token)
+                .fetch()
+            user_token = user_token.toJSON()
+            if(user_token.length > 0) {  
+                //remove token 
+                await UserToken
+                    .query()
+                    .where('email', email)
+                    .where('type', 'R')
+                    .where('token', token)
+                    .delete()
+                //save new pass
+                const user = await User.findBy('email', email)
+                user.password = request.input('password')
+                await user.save()
+                return response.json({
+                    status: 'success',
+                })
+            } else throw new Error
+        } catch (error) {
+            return response.status(400).json({  
+                status: "error",
+                message: error
+            })
+        }
+        
+    }
+
+    async CheckExistToken({request, response}) {
+        const token = request.input('token')
+        const email = request.input('email')
+        let user_token = await UserToken.query()
+            .where('email', email)
+            .where('token', token)
+            .fetch()
+        user_token = user_token.toJSON()
+        if(user_token.length > 0) {
+            return response.status(200).json({
+                status: 'success'
+            })
+        } else { 
+            return response.status(400).json({
+                status: 'error'
+            })
+        }
+    }
+
+    /**
+     * check email is exists
+     * @author truongatv 
+     */
     async checkExistEmail({ request, auth, response }) {
         const email = await User.findBy('email', request.input('email'))
         if (email) {
