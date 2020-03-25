@@ -24,6 +24,10 @@ Route.post('/signup', 'UserController.signup')
 Route.post('/login', 'UserController.login')
 Route.get('/check_exist_email', 'UserController.checkExistEmail')
 Route.put('/confirm_account', 'UserController.confirmAccount')
+Route.put('/check_exist_token', 'UserController.CheckExistToken')
+Route.put('/reset_password', 'UserController.resetPassword')
+Route.put('/request_reset_password', 'UserController.requestResetPassword').middleware(['UserExist'])
+
 Route.group(() => {
   Route.get('/profile', 'UserController.profile')
   Route.put('/update_profile', 'UserController.updateProfile')

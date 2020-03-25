@@ -38,7 +38,8 @@ const namedMiddleware = {
   auth: 'Adonis/Middleware/Auth',
   guest: 'Adonis/Middleware/AllowGuestOnly',
   CostCreator: 'App/Middleware/CostCreator',
-  HomeExist: 'App/Middleware/HomeExist'
+  HomeExist: 'App/Middleware/HomeExist',
+  UserExist: 'App/Middleware/UserExist'
 }
 
 /*

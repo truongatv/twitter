@@ -92,6 +92,7 @@ class HomeController {
         }
     }
 
+
     async listUser({auth, response}) {
         const column = {
             admin_id: 'homes.admin_id', 
@@ -250,7 +251,7 @@ class HomeController {
             if(currentUser.home_id) {
                 const homeMember = await User
                     .query()
-                    .select(`id`, `name`, `email`, `home_id`)
+                    .select(`id`, `name`, `email`, `home_id`, 'avatar')
                     .where('home_id', currentUser.home_id)
                     .fetch()
                 
