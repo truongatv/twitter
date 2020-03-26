@@ -11,7 +11,7 @@ class HomeController {
     async homeInfo({auth, response}) {
         try {
             //setup home's data
-            let homeInfo = {
+            let home_info = {
                 admin: {},
                 homeInfo: {},
                 members: []
@@ -23,13 +23,13 @@ class HomeController {
                 user_email: 'users.email',
                 avatar: 'users.avatar'
             }
-            homeInfo.homeInfo = await this.getHomeInfo(auth.current.user.id)
-            homeInfo.admin = await this.getHomeAdminInfo(homeInfo.homeInfo.id)
-            homeInfo.members = await this.getMemberInfo(homeInfo.homeInfo.id, column)
-            if(homeInfo.members.length > 0) {
+            home_info.homeInfo = await this.getHomeInfo(auth.current.user.id)
+            home_info.admin = await this.getHomeAdminInfo(home_info.homeInfo.id)
+            home_info.members = await this.getMemberInfo(home_info.homeInfo.id, column)
+            if(home_info.members.length > 0) {
                 return response.status(200).json({
                     status: 'success',
-                    data: homeInfo
+                    data: home_info
                 })
             } else {
                 return response.status(400).json({
@@ -63,7 +63,8 @@ class HomeController {
                     .insert({
                         'name': request.input('name'),
                         'address': request.input('address'),
-                        'admin_id': auth.current.user.id
+                        'admin_id': auth.current.user.id,
+                        'currency_id': request.input('currency_id')
                     })
                 await Database 
                     .table('users')
@@ -76,7 +77,8 @@ class HomeController {
                     .update({
                         'name': request.input('name'),
                         'address': request.input('address'),
-                        'admin_id': request.input('admin_id')
+                        'admin_id': request.input('admin_id'),
+                        'currency_id': request.input('currency_id')
                     })
             }
 

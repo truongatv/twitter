@@ -83,7 +83,11 @@ class UserController {
     }
 
     /**
-     * confirm account 
+     * confirm account ( change account status to confirmed)
+     * @author trongatv
+     * @param {string} token User's token
+     * @param {String} email User's email'
+     *  
      */
     async confirmAccount({ request, response }) {
         try {
@@ -124,12 +128,17 @@ class UserController {
 
     }
 
+    /**
+     * get user info
+     * @author truongatv
+     * @return {json} info's profile
+     */
     async profile({ auth, response }) {
         const user = await User.query()
             .setHidden(['password'])
             .where('id', auth.current.user.id)
             .with('home', builder => {
-                builder.select('id', 'name')
+                builder.select('id', 'name', 'currency_id')
             })
             .fetch()
 
@@ -139,6 +148,12 @@ class UserController {
         })
     }
 
+    /**
+     * update user info
+     * @param {string} email User's email' 
+     * @param {string} name User's name
+     * @param {integer} id User's id'
+     */
     async updateProfile({ request, auth, response }) {
         try {
             // get currently authenticated user
@@ -147,6 +162,7 @@ class UserController {
             // update with new data entered
             user.name = request.input('name')
             user.email = request.input('email')
+            user.currency_id = request.input('currency_id')
 
             await user.save()
 

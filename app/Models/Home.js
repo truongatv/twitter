@@ -11,6 +11,10 @@ class Home extends Model {
     users() {
         return this.hasMany('App/Models/User')
     }
+
+    currency() {
+        return this.hasOne('App/Models/Currency')
+    }
 }
 
 module.exports = Home
