@@ -1,0 +1,17 @@
+language: generic
+sudo: required
+
+services:
+  - docker
+
+deploy:
+  provider: elasticbeanstalk
+  region: "ap-northeast-1"
+  app: "seikahi"
+  env: "Seikahi-env"
+  bucket_name: "elasticbeanstalk-ap-northeast-1-565924363532"
+  bucket_path: "seikahi"
+  on:
+    branch: deploy
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
