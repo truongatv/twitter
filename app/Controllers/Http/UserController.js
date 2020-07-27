@@ -27,17 +27,17 @@ class UserController {
             await UserToken.create(user_token)
             // generate JWT token for user
             const token = await auth.generate(user)
-            const sendmail_result = await Mail.send('emails.confirm', {
-                data: user_data,
-                url: Env.get('APP_FRONT_URL'),
-                token: confirm_token
-            }, (message) => {
-                message
-                    .to(user_data.email)
-                    .from('truongatv2211@gmail.com')
-                    .subject('Xác nhận đăng ký !')
-            })
-            console.log(sendmail_result)
+            // const sendmail_result = await Mail.send('emails.confirm', {
+            //     data: user_data,
+            //     url: Env.get('APP_FRONT_URL'),
+            //     token: confirm_token
+            // }, (message) => {
+            //     message
+            //         .to(user_data.email)
+            //         .from('truongatv2211@gmail.com')
+            //         .subject('Xác nhận đăng ký !')
+            // })
+            // console.log(sendmail_result)
             return response.json({
                 status: 'success',
                 data: token
