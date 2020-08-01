@@ -43,7 +43,8 @@ class CostController {
                     'home_id': homeId[0].home_id,
                     'image': image,
                     'price': living_cost.price,
-                    'detail': living_cost.detail
+                    'detail': living_cost.detail,
+                    'currency_id': living_cost.currency_id
                 })
             //create array separate elements for insert to pivot table
             const user_ids = living_cost.receiver
@@ -203,7 +204,8 @@ class CostController {
                     price: living_cost.price,
                     image: living_cost.image,
                     detail: living_cost.detail,
-                    name: living_cost.name
+                    name: living_cost.name,
+                    currency_id: living_cost.currency_id
                 })
             //delete data from pivot table
             await Database
