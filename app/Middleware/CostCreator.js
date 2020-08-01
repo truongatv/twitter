@@ -12,12 +12,15 @@ class CostCreator {
    * @param {Function} next
    */
   async handle({ params, request, auth, response }, next) {
-    //get living_cost info
-    const living_cost = JSON.parse(request.input("living_cost"))
+    if(params.id < 0) {
+      return response.status(400).json({
+        message: Config.get('errors.message.userIsNotCreatorCost')
+      })
+    }
     // call next to advance the request
     const payer_id = await LivingCost
       .query()
-      .where('id', params.id > 0 ? params.id : living_cost.id)
+      .where('id', params.id)
       .where('payer_id', auth.current.user.id)
       .fetch()
     if (payer_id.rows.length > 0) {
